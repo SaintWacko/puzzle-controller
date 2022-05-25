@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Puzzle Display</title>
+    <style>
+      body {margin: 0;}
+      div {background-color: grey; height: 15%; aspect-ratio: 1; border-radius: 15%;}
+      #container { display: flex; flex-direction: row; background-color: black; justify-content: space-around; align-items: center; height: 100vh; width: 100vw; border-radius: 0}
+      .red {background-color: red; box-shadow: 0px 0px 40px 20px red}
+      .green {background-color: green; box-shadow: 0px 0px 40px 20px green}
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <div id="1"></div>
+      <div id="2"></div>
+      <div id="3"></div>
+      <div id="4"></div>
+      <div id="5"></div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      var socket = io();
+
+      var container = document.getElementById('container');
+
+      container.addEventListener('click', () => {
+        if (document.fullscreenElement) {
+          document.exitFullscreen()
+        } else {
+          container.requestFullscreen()
+        }
+      })
+
+      socket.on('state change', function(msg) {
+        const [light, state] = msg.split(':')
+        const target = document.getElementById(light)
+        switch (state) {
+          case 'correct':
+            target.setAttribute('class', 'green')
+            var audio = new Audio('correct.mp3')
+            audio.play()
+            break
+          case 'incorrect':
+            target.setAttribute('class', 'red')
+            var audio = new Audio('incorrect.mp3')
+            audio.play()
+            new Promise(r => setTimeout(r, 1000)).then(() => target.removeAttribute('class'));
+            break
+          default:
+            target.removeAttribute('class')
+        }
+      });
+
+      socket.on('unlock', () => {
+        var audio = new Audio('unlock.mp3')
+        audio.play()
+      })
+    </script>
+  </body>
+</html>

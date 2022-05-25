@@ -1,0 +1,96 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Puzzle Controller</title>
+    <style>
+      body {margin: 0;}
+      button {font-size:x-large; height: 15%; text-transform: uppercase;}
+      div {background-color: black; height: 90%; width: 15%; display: flex; flex-direction: column; justify-content: center;}
+      #container { display: flex; flex-direction: row; background-color: grey; justify-content: space-around; align-items: center; height: 100vh; width: 100vw;}
+      .red {background-color: red;}
+      .green {background-color: green;}
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <div id="1">
+          <button id="correct">Correct</button>
+          <button id="off">off</button>
+          <button id="incorrect">incorrect</button>
+      </div>
+      <div id="2">
+          <button id="correct">correct</button>
+          <button id="off">off</button>
+          <button id="incorrect">incorrect</button>
+      </div>
+      <div id="3">
+          <button id="correct">correct</button>
+          <button id="off">off</button>
+          <button id="incorrect">incorrect</button>
+      </div>
+      <div id="4">
+          <button id="correct">correct</button>
+          <button id="off">off</button>
+          <button id="incorrect">incorrect</button>
+      </div>
+      <div id="5">
+          <button id="correct">correct</button>
+          <button id="off">off</button>
+          <button id="incorrect">incorrect</button>
+      </div>
+      <button id="unlock">Unlock</button>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      var socket = io();
+
+      var container = document.getElementById('container');
+
+      container.addEventListener('click', function(event) {
+        if (event.target.nodeName === 'BUTTON') {
+          if (event.target.id === 'unlock'){
+            socket.emit('unlock')
+          } else {
+            const light = event.target.parentElement.id
+            const state = event.target.id
+            socket.emit('state change', `${light}:${state}`);
+            switch (state) {
+              case 'correct':
+                event.target.parentElement.setAttribute('class', 'green')
+                break
+              case 'incorrect':
+                event.target.parentElement.setAttribute('class', 'red')
+                new Promise(r => setTimeout(r, 1000)).then(() => event.target.parentElement.removeAttribute('class'));
+                break
+              default:
+                event.target.parentElement.removeAttribute('class')
+            }
+          }
+        }
+      });
+
+      socket.on('chat message', function(msg) {
+        var item = document.createElement('li');
+        item.textContent = msg;
+        messages.appendChild(item);
+        window.scrollTo(0, document.body.scrollHeight);
+      });
+
+      socket.on('state change', function(msg) {
+        const [light, state] = msg.split(':')
+        const target = document.getElementById(light)
+        switch (state) {
+          case 'correct':
+            target.setAttribute('class', 'green')
+            break
+          case 'incorrect':
+            target.setAttribute('class', 'red')
+            break
+          default:
+            target.removeAttribute('class')
+        }
+      });
+    </script>
+  </body>
+</html>
